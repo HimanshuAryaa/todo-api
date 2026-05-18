@@ -28,7 +28,7 @@ A simple REST API built with Python and Flask.
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | /todos | Get all todos |
-| POST | /todos | Create a new todo |
-| PUT | /todos/<id> | Update a todo |
-| DELETE | /todos/<id> | Delete a todo |
+| GET | `/todos` | Get all todos |
+| POST | `/todos` | Create a new todo |
+| PUT | `/todos/<id>` | Update a todo |
+| DELETE | `/todos/<id>` | Delete a todo |
