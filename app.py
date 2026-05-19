@@ -1,56 +1,77 @@
 from flask import Flask, jsonify, request
+from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
 
-todos = [
-    {"id": 1, "task":"Learn Flask", "done":False},
-    {"id": 2, "task":"Build a API", "done":False}
-]
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///todos.db"
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+
+db = SQLAlchemy(app)
+
+class Todo(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    task = db.Column(db.String(200), nullable=False)
+    done = db.Column(db.Boolean, default=False)
+
+    def to_dict(self):
+        return{
+            "id": self.id,
+            "task": self.task,
+            "done": self.done
+        }
+    
+with app.app_context():
+    db.create_all()
+    print("Tables created!")
+
+
+# todos = [
+#     {"id": 1, "task":"Learn Flask", "done":False},
+#     {"id": 2, "task":"Build a API", "done":False}
+# ]
 
 
 @app.route("/")
 def home():
     return "Todo API is running!"
 
+
 @app.route("/todos", methods=["GET"])
-def gettodo():
-    return jsonify(todos)
+def get_todo():
+    todos = Todo.query.all()
+    todo = [todo.to_dict() for todo in todos]
+    return jsonify(todo)
+
 
 @app.route("/todos", methods=["POST"])
 def create_todo():
-
     data = request.json
+    new_todo = Todo(task=data["task"])
+    db.session.add(new_todo)
+    db.session.commit()
+    return jsonify(new_todo.to_dict()), 201
 
-    new_todo = {
-        "id": len(todos) + 1,
-        "task": data["task"],
-        "done": False
-    }
-    todos.append(new_todo)
-    return jsonify(new_todo), 201
 
 @app.route("/todos/<int:id>", methods=["PUT"])
 def update_todo(id):
-    
+    todo = Todo.query.get(id)
+    if not todo:
+        return jsonify({"error": "Todo not found"}), 404
     data = request.json
+    todo.task = data.get("task", todo.task)
+    todo.done = data.get("done", todo.done)
+    db.session.commit()
+    return jsonify(todo.to_dict()), 200
 
-    for todo in todos:
-        if todo["id"] == id:
-            todo["task"] = data.get("task", todo["task"])
-            todo["done"] = data.get("done", todo["done"])
-            return jsonify(todo), 200
-    return jsonify({"error": "Todo not found"}), 404
 
 @app.route("/todos/<int:id>", methods=["DELETE"])
 def delete_todo(id):
-
-    for todo in todos:
-        if todo["id"] == id:
-            todos.remove(todo)
-            return jsonify({"message": "Todo deleted"}), 200
-    return jsonify({"error": "Todo not found"}), 404
-
-
+    todo = Todo.query.get(id)
+    if not todo:
+        return jsonify({"error": "Todo not found"}), 404
+    db.session.delete(todo)
+    db.session.commit()
+    return jsonify({"message": "Todo deleted"}), 200
 
 
 if __name__ == "__main__":
