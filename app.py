@@ -1,12 +1,17 @@
 from flask import Flask, jsonify, request
-from flask_sqlalchemy import SQLAlchemy
+from flask_jwt_extended import JWTManager, jwt_required, get_jwt_identity
+from extensions import db, bcrypt
 
 app = Flask(__name__)
 
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///todos.db"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+app.config["JWT_SECRET_KEY"] = "your-secret-key"
 
-db = SQLAlchemy(app)
+jwt = JWTManager(app)
+
+db.init_app(app)
+bcrypt.init_app(app)
 
 class Todo(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -19,7 +24,10 @@ class Todo(db.Model):
             "task": self.task,
             "done": self.done
         }
-    
+
+from auth import auth, User
+app.register_blueprint(auth)
+
 with app.app_context():
     db.create_all()
     print("Tables created!")
@@ -37,6 +45,7 @@ def home():
 
 
 @app.route("/todos", methods=["GET"])
+@jwt_required()
 def get_todo():
     todos = Todo.query.all()
     todo = [todo.to_dict() for todo in todos]
@@ -44,6 +53,7 @@ def get_todo():
 
 
 @app.route("/todos", methods=["POST"])
+@jwt_required()
 def create_todo():
     data = request.json
     new_todo = Todo(task=data["task"])
@@ -53,6 +63,7 @@ def create_todo():
 
 
 @app.route("/todos/<int:id>", methods=["PUT"])
+@jwt_required()
 def update_todo(id):
     todo = Todo.query.get(id)
     if not todo:
@@ -65,6 +76,7 @@ def update_todo(id):
 
 
 @app.route("/todos/<int:id>", methods=["DELETE"])
+@jwt_required()
 def delete_todo(id):
     todo = Todo.query.get(id)
     if not todo:
