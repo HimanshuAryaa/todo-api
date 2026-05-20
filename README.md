@@ -9,6 +9,7 @@ A REST API built with Python and Flask with JWT Authentication.
 - Update a todo
 - Delete a todo
 - Protected routes — only authenticated users can access todos
+- Each user can only see their own todos
 
 ## Tech Stack
 - Python
@@ -40,8 +41,8 @@ A REST API built with Python and Flask with JWT Authentication.
 ### Todos (Token required)
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | `/todos` | Get all todos |
-| POST | `/todos` | Create a new todo |
+| GET | `/todos` | Get current user's todos only |
+| POST | `/todos` | Create a todo for current user |
 | PUT | `/todos/<id>` | Update a todo |
 | DELETE | `/todos/<id>` | Delete a todo |
 
