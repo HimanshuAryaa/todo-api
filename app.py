@@ -17,12 +17,14 @@ class Todo(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     task = db.Column(db.String(200), nullable=False)
     done = db.Column(db.Boolean, default=False)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
 
     def to_dict(self):
         return{
             "id": self.id,
             "task": self.task,
-            "done": self.done
+            "done": self.done,
+            "user_id": self.user_id
         }
 
 from auth import auth, User
@@ -47,7 +49,8 @@ def home():
 @app.route("/todos", methods=["GET"])
 @jwt_required()
 def get_todo():
-    todos = Todo.query.all()
+    user_id = get_jwt_identity()
+    todos = Todo.query.filter_by(user_id=user_id).all()
     todo = [todo.to_dict() for todo in todos]
     return jsonify(todo)
 
@@ -56,7 +59,8 @@ def get_todo():
 @jwt_required()
 def create_todo():
     data = request.json
-    new_todo = Todo(task=data["task"])
+    user_id = get_jwt_identity()
+    new_todo = Todo(task=data["task"], user_id=user_id)
     db.session.add(new_todo)
     db.session.commit()
     return jsonify(new_todo.to_dict()), 201
