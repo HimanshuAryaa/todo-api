@@ -30,6 +30,14 @@ A REST API built with Python and Flask with JWT Authentication.
 5. Run the app - 
     python app.py
 
+## Live API
+Base URL: `https://todo-api-5iw5.onrender.com`
+
+Test it directly:
+- Register: `POST https://todo-api-5iw5.onrender.com/register`
+- Login: `POST https://todo-api-5iw5.onrender.com/login`
+- Todos: `GET https://todo-api-5iw5.onrender.com/todos`
+
 ## API Endpoints
 
 ### Auth (No token required)
